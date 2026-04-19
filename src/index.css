@@ -1,0 +1,55 @@
+/* FONTS */
+@import url('https://api.fontshare.com/v2/css?f[]=chillax@400,500,600&display=swap');
+
+/* RESET */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* VARIABLES */
+:root {
+  --bg: #F7F4EE;
+  --ink: #1A1A18;
+  --ink2: #4A4A44;
+  --ink3: #8A8A80;
+
+  --accent: #14b8a6;
+  --accent2: #52B788;
+
+  --surface: #EDEAE2;
+  --surface2: #E2DED5;
+
+  --serif: 'Instrument Serif', serif;
+  --sans: 'DM Sans', sans-serif;
+  --display: 'Chillax', 'DM Sans', sans-serif;
+}
+
+/* BASE */
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* TYPOGRAPHY SYSTEM */
+h1 {
+  font-family: var(--serif);
+}
+
+h2, h3, h4,
+.section-title,
+.section-label {
+  font-family: var(--display);
+}
+
+/* LINKS + BUTTONS */
+a { text-decoration: none; color: inherit; }
+
+button {
+  cursor: pointer;
+  font-family: var(--sans);
+}

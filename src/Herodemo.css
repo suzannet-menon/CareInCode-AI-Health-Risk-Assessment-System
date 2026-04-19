@@ -1,0 +1,99 @@
+/* ─── Hero Section ──────────────────────────────────────────────────────────── */
+
+.hero-split {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+  overflow: hidden;
+  background: #faf7f2;
+}
+
+/* ─── Left side: text content (unchanged) ───────────────────────────────────── */
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 52%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 56px 80px 72px;
+}
+
+/* ─── Right side: animated demo container ───────────────────────────────────── */
+
+.hero-bg {
+  position: relative;
+  flex: 1;
+  /* Keep your exact existing clip-path slant */
+  clip-path: polygon(8% 0%, 100% 0%, 100% 100%, 0% 100%);
+  background: linear-gradient(145deg, #0d9e6e 0%, #0a7a54 40%, #065f46 100%);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Subtle texture overlay — keeps the green bg visible behind the card */
+.hero-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 80%, rgba(0,0,0,0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Decorative rings in background */
+.hero-bg::after {
+  content: "";
+  position: absolute;
+  width: 500px;
+  height: 350px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.06);
+  top: -120px;
+  right: -120px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* The demo wrapper sits above the decorative layers */
+.hero-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .hero {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .hero-content {
+    flex: none;
+    padding: 60px 40px 40px;
+  }
+
+  .hero-bg {
+    flex: none;
+    height: 480px;
+    clip-path: polygon(0% 6%, 100% 0%, 100% 100%, 0% 100%);
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-content {
+    padding: 48px 24px 32px;
+  }
+
+  .hero-bg {
+    height: 420px;
+    clip-path: polygon(0% 4%, 100% 0%, 100% 100%, 0% 100%);
+  }
+}
