@@ -1,152 +1,273 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
+const intensityLabels = {
+  1: "Very mild",
+  2: "Very mild",
+  3: "Mild",
+  4: "Noticeable",
+  5: "Moderate",
+  6: "Moderate",
+  7: "Strong",
+  8: "Strong",
+  9: "Severe",
+  10: "Severe",
+};
+
+function formatIsoDate(date) {
+  return date.toISOString().split("T")[0];
+}
+
+function prettyDate(dateValue) {
+  return new Date(dateValue).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function buildCalendarDays(selectedDate, symptoms) {
+  const selected = new Date(`${selectedDate}T00:00:00`);
+  const weekday = selected.getDay();
+  const mondayOffset = weekday === 0 ? -6 : 1 - weekday;
+  const start = new Date(selected);
+  start.setDate(selected.getDate() + mondayOffset);
+
+  return Array.from({ length: 14 }, (_, index) => {
+    const day = new Date(start);
+    day.setDate(start.getDate() + index);
+    const iso = formatIsoDate(day);
+    const logsForDay = symptoms.filter((entry) => entry.date === iso);
+    const strongestEntry = logsForDay.reduce(
+      (current, entry) => (entry.intensity > current.intensity ? entry : current),
+      { intensity: 0 }
+    );
+
+    return {
+      iso,
+      label: day.toLocaleDateString("en-GB", { weekday: "short" }),
+      dateNumber: day.getDate(),
+      month: day.toLocaleDateString("en-GB", { month: "short" }),
+      isSelected: iso === selectedDate,
+      hasEntries: logsForDay.length > 0,
+      intensity: strongestEntry.intensity,
+    };
+  });
+}
+
+function createSummary({ medications, symptoms }) {
+  const sortedSymptoms = [...symptoms].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const earliest = sortedSymptoms[0];
+  const latest = sortedSymptoms[sortedSymptoms.length - 1];
+  const averageIntensity = sortedSymptoms.length
+    ? Math.round(
+        sortedSymptoms.reduce((sum, entry) => sum + Number(entry.intensity || 0), 0) /
+          sortedSymptoms.length
+      )
+    : 0;
+
+  const symptomNarrative = sortedSymptoms.length
+    ? sortedSymptoms
+        .map((entry) => {
+          const parts = [
+            `${prettyDate(entry.date)}: ${entry.location || "General discomfort"}`,
+            `intensity ${entry.intensity}/10`,
+          ];
+          if (entry.triggers) {
+            parts.push(`triggers noted: ${entry.triggers}`);
+          }
+          parts.push(entry.notes);
+          return parts.join(" - ");
+        })
+        .join("\n")
+    : "No symptom entries added yet.";
+
+  const questions = [];
+  if (sortedSymptoms.length) {
+    questions.push(
+      `How do the symptom changes between ${prettyDate(earliest.date)} and ${prettyDate(
+        latest.date
+      )} affect what you think is going on?`
+    );
+  }
+  if (medications.length) {
+    questions.push("Could any of my current medications be affecting these symptoms or masking them?");
+  }
+  if (averageIntensity >= 6) {
+    questions.push("What should I do if this pain returns at the same or higher intensity before my next visit?");
+  } else {
+    questions.push("What patterns should I keep tracking at home before the next appointment?");
+  }
+  questions.push("Are there tests, scans, or lifestyle changes I should prioritize first?");
+
+  return {
+    headline:
+      sortedSymptoms.length > 0
+        ? "A symptom timeline has been prepared with medication context for your consultation."
+        : "A medication snapshot has been prepared for your consultation.",
+    facts: [
+      `${medications.length} medication${medications.length === 1 ? "" : "s"} listed`,
+      `${sortedSymptoms.length} symptom log${sortedSymptoms.length === 1 ? "" : "s"} recorded`,
+      sortedSymptoms.length
+        ? `Average symptom intensity: ${averageIntensity}/10`
+        : "No symptom intensity trend yet",
+    ],
+    summaryText: [
+      "Doctor Visit Preparation Summary",
+      "",
+      `Generated on: ${new Date().toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })}`,
+      "",
+      "Current medications:",
+      medications.length
+        ? medications
+            .map(
+              (med, index) =>
+                `${index + 1}. ${med.name}${med.dosage ? ` - ${med.dosage}` : ""}${
+                  med.reason ? ` | for ${med.reason}` : ""
+                }`
+            )
+            .join("\n")
+        : "None added",
+      "",
+      "Symptom timeline:",
+      symptomNarrative,
+      "",
+      "Suggested discussion points:",
+      questions.map((question, index) => `${index + 1}. ${question}`).join("\n"),
+    ].join("\n"),
+    questions,
+  };
+}
+
 export default function DoctorVisitPrep() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("medications");
-  const [medications, setMedications] = useState([]);
-  const [newMed, setNewMed] = useState({ name: "", reason: "", dosage: "" });
-  const [symptoms, setSymptoms] = useState([]);
-  const [newSymptom, setNewSymptom] = useState({ date: "", description: "" });
+  const today = formatIsoDate(new Date());
+
+  const [medications, setMedications] = useState([
+    {
+      id: "med-sample",
+      name: "Vitamin D3",
+      dosage: "1000 IU daily",
+      reason: "Low Vitamin D",
+    },
+  ]);
+  const [medicationDraft, setMedicationDraft] = useState({
+    name: "",
+    dosage: "",
+    reason: "",
+  });
+  const [symptoms, setSymptoms] = useState([
+    {
+      id: "sym-1",
+      date: today,
+      location: "Knee joints",
+      intensity: 4,
+      triggers: "After climbing stairs",
+      notes: "Felt a dull ache in both knees by evening.",
+    },
+  ]);
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [symptomDraft, setSymptomDraft] = useState({
+    location: "",
+    intensity: 5,
+    triggers: "",
+    notes: "",
+  });
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleAddMedication = () => {
-    if (!newMed.name.trim()) {
-      alert("Please enter medication name");
+  const calendarDays = useMemo(
+    () => buildCalendarDays(selectedDate, symptoms),
+    [selectedDate, symptoms]
+  );
+
+  const selectedDayEntries = useMemo(
+    () => symptoms.filter((entry) => entry.date === selectedDate),
+    [selectedDate, symptoms]
+  );
+
+  const sortedSymptoms = useMemo(
+    () => [...symptoms].sort((a, b) => new Date(a.date) - new Date(b.date)),
+    [symptoms]
+  );
+
+  const addMedication = () => {
+    if (!medicationDraft.name.trim()) {
+      setError("Add the medication name before saving.");
       return;
     }
 
-    const med = {
-      id: `med-${Date.now()}`,
-      ...newMed,
-      addedDate: new Date().toLocaleDateString("en-GB"),
-    };
-
-    setMedications([...medications, med]);
-    setNewMed({ name: "", reason: "", dosage: "" });
+    setError("");
+    setMedications((current) => [
+      ...current,
+      {
+        id: `med-${Date.now()}`,
+        ...medicationDraft,
+      },
+    ]);
+    setMedicationDraft({ name: "", dosage: "", reason: "" });
   };
 
-  const handleRemoveMedication = (id) => {
-    setMedications(medications.filter((med) => med.id !== id));
-  };
-
-  const handleAddSymptom = () => {
-    if (!newSymptom.date || !newSymptom.description.trim()) {
-      alert("Please select a date and describe your symptom");
+  const addSymptom = () => {
+    if (!symptomDraft.notes.trim()) {
+      setError("Write a short note about what you felt on that day.");
       return;
     }
 
-    const symptom = {
-      id: `sym-${Date.now()}`,
-      date: newSymptom.date,
-      description: newSymptom.description,
-      timestamp: new Date(newSymptom.date),
-    };
-
-    setSymptoms([...symptoms, symptom].sort((a, b) => a.timestamp - b.timestamp));
-    setNewSymptom({ date: "", description: "" });
+    setError("");
+    setSymptoms((current) =>
+      [...current, { id: `sym-${Date.now()}`, date: selectedDate, ...symptomDraft }].sort(
+        (a, b) => new Date(a.date) - new Date(b.date)
+      )
+    );
+    setSymptomDraft({
+      location: "",
+      intensity: 5,
+      triggers: "",
+      notes: "",
+    });
   };
 
-  const handleRemoveSymptom = (id) => {
-    setSymptoms(symptoms.filter((sym) => sym.id !== id));
+  const removeMedication = (id) => {
+    setMedications((current) => current.filter((item) => item.id !== id));
   };
 
-  const handleGenerateSummary = async () => {
-    if (medications.length === 0 && symptoms.length === 0) {
-      alert("Please add at least one medication or symptom entry");
+  const removeSymptom = (id) => {
+    setSymptoms((current) => current.filter((item) => item.id !== id));
+  };
+
+  const generateSummary = () => {
+    if (!medications.length && !symptoms.length) {
+      setError("Add medication or symptom details before generating the summary.");
       return;
     }
 
+    setError("");
     setLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      const generatedSummary = generateSummary(medications, symptoms);
-      setSummary(generatedSummary);
+    window.setTimeout(() => {
+      setSummary(createSummary({ medications, symptoms }));
       setLoading(false);
-    }, 1500);
-  };
-
-  const generateSummary = (meds, syms) => {
-    const visitDate = new Date().toLocaleDateString("en-GB", { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-    
-    let summary = "═══════════════════════════════════════════════════════\n";
-    summary += "         DOCTOR VISIT PREPARATION SUMMARY\n";
-    summary += "═══════════════════════════════════════════════════════\n\n";
-    
-    summary += `Visit Date: ${visitDate}\n\n`;
-
-    summary += "┌─ CURRENT MEDICATIONS ─────────────────────────────────┐\n";
-    summary += "│                                                       │\n";
-    if (meds.length > 0) {
-      meds.forEach((med, idx) => {
-        summary += `│ ${idx + 1}. ${med.name}\n`;
-        if (med.dosage) summary += `│    Dosage: ${med.dosage}\n`;
-        if (med.reason) summary += `│    Reason: ${med.reason}\n`;
-        summary += `│    Added: ${med.addedDate}\n`;
-        if (idx < meds.length - 1) summary += "│\n";
-      });
-    } else {
-      summary += "│ No medications reported.\n";
-    }
-    summary += "│                                                       │\n";
-    summary += "└─────────────────────────────────────────────────────────┘\n\n";
-
-    summary += "┌─ SYMPTOM TIMELINE & PROGRESSION ──────────────────────┐\n";
-    summary += "│                                                       │\n";
-    if (syms.length > 0) {
-      syms.forEach((sym, idx) => {
-        summary += `│ [${sym.date}]\n`;
-        summary += `│ → ${sym.description}\n`;
-        if (idx < syms.length - 1) summary += "│\n";
-      });
-      summary += "│                                                       │\n";
-      summary += "│ PATTERN ANALYSIS:\n";
-      summary += `│ • Total symptoms logged: ${syms.length}\n`;
-      summary += `│ • Time span: ${syms.length > 1 ? 'Multiple days tracked' : 'Recent onset'}\n`;
-    } else {
-      summary += "│ No symptoms logged.\n";
-      summary += "│                                                       │\n";
-    }
-    summary += "└─────────────────────────────────────────────────────────┘\n\n";
-
-    summary += "┌─ INTEGRATION NOTES ───────────────────────────────────┐\n";
-    summary += "│                                                       │\n";
-    if (meds.length > 0 && syms.length > 0) {
-      summary += "│ Please discuss:\n";
-      summary += "│ • How current medications relate to reported symptoms\n";
-      summary += "│ • Any medication adjustments if symptoms persist\n";
-      summary += "│ • Timeline of symptom onset vs medication start\n";
-    } else if (meds.length > 0) {
-      summary += "│ Current medication regimen needs review.\n";
-    } else if (syms.length > 0) {
-      summary += "│ Symptom timeline provided for medical assessment.\n";
-    }
-    summary += "│                                                       │\n";
-    summary += "└─────────────────────────────────────────────────────────┘\n\n";
-
-    summary += "═══════════════════════════════════════════════════════\n";
-    summary += "Generated from CareInCode - Your Personal Health Hub\n";
-    summary += "═══════════════════════════════════════════════════════\n";
-
-    return summary;
+    }, 900);
   };
 
   const downloadSummary = () => {
-    if (!summary) return;
+    if (!summary) {
+      return;
+    }
 
-    const blob = new Blob([summary], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([summary.summaryText], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `doctor-visit-summary-${new Date().toISOString().split("T")[0]}.txt`;
+    link.download = `doctor-visit-summary-${today}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -155,298 +276,392 @@ export default function DoctorVisitPrep() {
 
   return (
     <div className="doctor-visit-page">
-      {/* Header */}
       <motion.div
-        className="dv-header"
+        className="dv-header dv-shell"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
       >
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="back-btn"
-          aria-label="Back to dashboard"
-        >
-          ← Dashboard
+        <button onClick={() => navigate("/dashboard")} className="back-btn" type="button">
+          {"<-"} Dashboard
         </button>
-        <h1 className="dv-title">Doctor Visit Preparation</h1>
-        <p className="dv-desc">
-          Log your current medications and symptom timeline, then generate a comprehensive summary to share with your doctor.
-        </p>
+        <div className="dv-header-grid">
+          <div>
+            <span className="page-kicker">Profile 3</span>
+            <h1 className="dv-title">Doctor Visit Preparation</h1>
+            <p className="dv-desc">
+              Keep a clean list of medications, log symptoms by date, and let CareInCode shape it
+              into a doctor-ready summary before the appointment.
+            </p>
+          </div>
+          <div className="dv-header-stat">
+            <span>Ready for consult</span>
+            <strong>{medications.length + symptoms.length} items tracked</strong>
+            <p>Medication history and symptom progression stay together in one place.</p>
+          </div>
+        </div>
       </motion.div>
 
-      <div className="dv-container">
-        {/* Tabs */}
-        <motion.div
-          className="dv-tabs"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.45, delay: 0.1 }}
-        >
-          <button
-            className={`dv-tab ${activeTab === "medications" ? "active" : ""}`}
-            onClick={() => setActiveTab("medications")}
-          >
-            💊 Medications
-            {medications.length > 0 && <span className="tab-badge">{medications.length}</span>}
-          </button>
-          <button
-            className={`dv-tab ${activeTab === "symptoms" ? "active" : ""}`}
-            onClick={() => setActiveTab("symptoms")}
-          >
-            📋 Symptoms
-            {symptoms.length > 0 && <span className="tab-badge">{symptoms.length}</span>}
-          </button>
-          <button
-            className={`dv-tab ${activeTab === "summary" ? "active" : ""}`}
-            onClick={() => setActiveTab("summary")}
-          >
-            📄 Summary
-          </button>
-        </motion.div>
-
-        {/* Content */}
-        <motion.div
-          className="dv-content"
-          initial={{ opacity: 0, y: 10 }}
+      <div className="dv-shell dv-main-grid">
+        <motion.section
+          className="dv-card"
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.15 }}
+          transition={{ delay: 0.08 }}
         >
-          {/* Medications Tab */}
-          {activeTab === "medications" && (
-            <div className="dv-section">
-              <h2 className="dv-section-title">Current Medications</h2>
-              <p className="dv-section-desc">
-                List all medications you're currently taking. This helps your doctor understand
-                your complete medical picture.
-              </p>
+          <div className="dv-card-head">
+            <div>
+              <p className="panel-kicker">Medication log</p>
+              <h2 className="panel-title">Current medications and why you take them</h2>
+            </div>
+            <p className="panel-note">A simple list your doctor can scan in seconds.</p>
+          </div>
 
-              {/* Input Form */}
-              <div className="dv-form">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="med-name">Medication Name *</label>
-                    <input
-                      id="med-name"
-                      type="text"
-                      placeholder="e.g., Aspirin, Metformin"
-                      value={newMed.name}
-                      onChange={(e) => setNewMed({ ...newMed, name: e.target.value })}
-                      className="form-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="med-dosage">Dosage</label>
-                    <input
-                      id="med-dosage"
-                      type="text"
-                      placeholder="e.g., 500mg twice daily"
-                      value={newMed.dosage}
-                      onChange={(e) => setNewMed({ ...newMed, dosage: e.target.value })}
-                      className="form-input"
-                    />
-                  </div>
+          <div className="dv-form-card">
+            <div className="dv-form-grid">
+              <label className="dv-field">
+                <span>Medication name</span>
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder="Metformin"
+                  value={medicationDraft.name}
+                  onChange={(event) =>
+                    setMedicationDraft((current) => ({ ...current, name: event.target.value }))
+                  }
+                />
+              </label>
+              <label className="dv-field">
+                <span>Dosage</span>
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder="500 mg twice daily"
+                  value={medicationDraft.dosage}
+                  onChange={(event) =>
+                    setMedicationDraft((current) => ({ ...current, dosage: event.target.value }))
+                  }
+                />
+              </label>
+            </div>
+            <label className="dv-field">
+              <span>What is it for?</span>
+              <textarea
+                className="form-textarea"
+                rows="3"
+                placeholder="Diabetes management, pain relief, thyroid support..."
+                value={medicationDraft.reason}
+                onChange={(event) =>
+                  setMedicationDraft((current) => ({ ...current, reason: event.target.value }))
+                }
+              />
+            </label>
+            <button type="button" className="btn-add-item" onClick={addMedication}>
+              Add medication
+            </button>
+          </div>
+
+          <div className="dv-stacked-list">
+            {medications.map((medication) => (
+              <article key={medication.id} className="dv-log-card">
+                <div>
+                  <h3>{medication.name}</h3>
+                  <p>{medication.dosage || "Dosage not added yet"}</p>
+                  <span>{medication.reason || "Reason not added yet"}</span>
                 </div>
-
-                <div className="form-group">
-                  <label htmlFor="med-reason">Reason for Taking</label>
-                  <textarea
-                    id="med-reason"
-                    placeholder="e.g., High blood pressure, Diabetes management"
-                    value={newMed.reason}
-                    onChange={(e) => setNewMed({ ...newMed, reason: e.target.value })}
-                    className="form-textarea"
-                    rows="2"
-                  />
-                </div>
-
-                <button className="btn-add-item" onClick={handleAddMedication}>
-                  + Add Medication
+                <button
+                  type="button"
+                  className="btn-remove"
+                  onClick={() => removeMedication(medication.id)}
+                  aria-label={`Remove ${medication.name}`}
+                >
+                  x
                 </button>
-              </div>
+              </article>
+            ))}
+          </div>
+        </motion.section>
 
-              {/* Medications List */}
-              {medications.length > 0 && (
-                <div className="dv-list">
-                  <h3 className="list-title">Your Medications ({medications.length})</h3>
-                  {medications.map((med) => (
-                    <motion.div
-                      key={med.id}
-                      className="dv-list-item"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
+        <motion.section
+          className="dv-card"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.14 }}
+        >
+          <div className="dv-card-head">
+            <div>
+              <p className="panel-kicker">Symptom logger</p>
+              <h2 className="panel-title">Pick a day and write what changed</h2>
+            </div>
+            <p className="panel-note">
+              This acts like a midway calendar: select a day, then note pain, aggravation, or new
+              symptoms neatly.
+            </p>
+          </div>
+
+          <div className="dv-calendar-card">
+            <div className="dv-calendar-head">
+              <div>
+                <span className="mini-label">Selected day</span>
+                <strong>{prettyDate(selectedDate)}</strong>
+              </div>
+              <input
+                className="form-input dv-date-input"
+                type="date"
+                value={selectedDate}
+                onChange={(event) => setSelectedDate(event.target.value)}
+              />
+            </div>
+
+            <div className="dv-calendar-grid">
+              {calendarDays.map((day) => (
+                <button
+                  key={day.iso}
+                  type="button"
+                  className={`dv-day-card${day.isSelected ? " selected" : ""}${
+                    day.hasEntries ? " has-entry" : ""
+                  }`}
+                  onClick={() => setSelectedDate(day.iso)}
+                >
+                  <span>{day.label}</span>
+                  <strong>{day.dateNumber}</strong>
+                  <small>{day.month}</small>
+                  {day.hasEntries ? <em>{day.intensity}/10</em> : <i>No log</i>}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="dv-form-card">
+            <div className="dv-form-grid">
+              <label className="dv-field">
+                <span>Where is the pain or discomfort?</span>
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder="Lower back, left shoulder, joints..."
+                  value={symptomDraft.location}
+                  onChange={(event) =>
+                    setSymptomDraft((current) => ({ ...current, location: event.target.value }))
+                  }
+                />
+              </label>
+              <label className="dv-field">
+                <span>Intensity</span>
+                <div className="dv-intensity-wrap">
+                  <input
+                    className="dv-range"
+                    type="range"
+                    min="1"
+                    max="10"
+                    value={symptomDraft.intensity}
+                    onChange={(event) =>
+                      setSymptomDraft((current) => ({
+                        ...current,
+                        intensity: Number(event.target.value),
+                      }))
+                    }
+                  />
+                  <div className="dv-intensity-meta">
+                    <strong>{symptomDraft.intensity}/10</strong>
+                    <span>{intensityLabels[symptomDraft.intensity]}</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+            <label className="dv-field">
+              <span>What seemed to trigger it?</span>
+              <input
+                className="form-input"
+                type="text"
+                placeholder="After walking, after sitting for long, after meals..."
+                value={symptomDraft.triggers}
+                onChange={(event) =>
+                  setSymptomDraft((current) => ({ ...current, triggers: event.target.value }))
+                }
+              />
+            </label>
+            <label className="dv-field">
+              <span>Write what happened that day</span>
+              <textarea
+                className="form-textarea"
+                rows="4"
+                placeholder="Today I felt some joint pain. A week later it became sharper while getting up from a chair..."
+                value={symptomDraft.notes}
+                onChange={(event) =>
+                  setSymptomDraft((current) => ({ ...current, notes: event.target.value }))
+                }
+              />
+            </label>
+            <button type="button" className="btn-add-item" onClick={addSymptom}>
+              Save symptom log
+            </button>
+          </div>
+
+          <div className="dv-day-summary">
+            <div className="dv-day-summary-head">
+              <h3>Logs for {prettyDate(selectedDate)}</h3>
+              <span>{selectedDayEntries.length} entry{selectedDayEntries.length === 1 ? "" : "ies"}</span>
+            </div>
+            <div className="dv-stacked-list">
+              {selectedDayEntries.length ? (
+                selectedDayEntries.map((entry) => (
+                  <article key={entry.id} className="dv-log-card">
+                    <div>
+                      <h3>{entry.location || "General note"}</h3>
+                      <p>
+                        Intensity {entry.intensity}/10
+                        {entry.triggers ? ` - Trigger: ${entry.triggers}` : ""}
+                      </p>
+                      <span>{entry.notes}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-remove"
+                      onClick={() => removeSymptom(entry.id)}
+                      aria-label="Remove symptom entry"
                     >
-                      <div className="item-content">
-                        <h4 className="item-name">{med.name}</h4>
-                        {med.dosage && <p className="item-detail">Dosage: {med.dosage}</p>}
-                        {med.reason && <p className="item-detail">Reason: {med.reason}</p>}
-                        <p className="item-meta">Added: {med.addedDate}</p>
-                      </div>
-                      <button
-                        className="btn-remove"
-                        onClick={() => handleRemoveMedication(med.id)}
-                        aria-label="Remove medication"
-                      >
-                        ✕
-                      </button>
-                    </motion.div>
+                      x
+                    </button>
+                  </article>
+                ))
+              ) : (
+                <div className="dv-empty-inline">
+                  No symptom note for this date yet. Pick the day, add what you felt, and it will
+                  appear here.
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.section>
+      </div>
+
+      <motion.section
+        className="dv-shell dv-summary-card"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <div className="dv-card-head">
+          <div>
+            <p className="panel-kicker">Pre-consultation summary</p>
+            <h2 className="panel-title">Generate a clean summary for your doctor</h2>
+          </div>
+          <p className="panel-note">
+            The AI summary pulls your medications and symptom progression into one clearer story.
+          </p>
+        </div>
+
+        <div className="dv-summary-actions">
+          <motion.button
+            type="button"
+            className="btn-generate-summary"
+            onClick={generateSummary}
+            disabled={loading}
+            whileHover={{ scale: loading ? 1 : 1.01 }}
+            whileTap={{ scale: loading ? 1 : 0.99 }}
+          >
+            {loading ? (
+              <>
+                <span className="spinner-small" />
+                Building summary...
+              </>
+            ) : (
+              "Generate AI Summary"
+            )}
+          </motion.button>
+          {summary ? (
+            <button type="button" className="btn-new-summary" onClick={downloadSummary}>
+              Download summary
+            </button>
+          ) : null}
+        </div>
+
+        {error ? <p className="reflection-error">{error}</p> : null}
+
+        {!summary ? (
+          <div className="summary-prompt">
+            Add medication details and symptom notes first, then generate a doctor-ready summary
+            with suggested questions.
+          </div>
+        ) : (
+          <div className="dv-summary-grid">
+            <div className="dv-summary-overview">
+              <div className="reflection-overview-card">
+                <span className="overview-label">Summary overview</span>
+                <p>{summary.headline}</p>
+              </div>
+              <div className="dv-facts-row">
+                {summary.facts.map((fact) => (
+                  <div key={fact} className="dv-fact-pill">
+                    {fact}
+                  </div>
+                ))}
+              </div>
+              <div className="reflection-suggestions-card">
+                <div className="suggestions-head">
+                  <h3>Questions to ask your doctor</h3>
+                  <span>{summary.questions.length} ready</span>
+                </div>
+                <div className="suggestions-list">
+                  {summary.questions.map((question, index) => (
+                    <div key={question} className="suggestion-item">
+                      <span className="question-index">{index + 1}</span>
+                      <p>{question}</p>
+                    </div>
                   ))}
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* Symptoms Tab */}
-          {activeTab === "symptoms" && (
-            <div className="dv-section">
-              <h2 className="dv-section-title">Symptom Timeline</h2>
-              <p className="dv-section-desc">
-                Log your symptoms over time. Include dates, severity, and any changes you notice.
-                This helps identify patterns.
-              </p>
-
-              {/* Calendar & Input Form */}
-              <div className="dv-form">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="symptom-date">Date *</label>
-                    <input
-                      id="symptom-date"
-                      type="date"
-                      value={newSymptom.date}
-                      onChange={(e) => setNewSymptom({ ...newSymptom, date: e.target.value })}
-                      className="form-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="symptom-desc">Symptom Description *</label>
-                  <textarea
-                    id="symptom-desc"
-                    placeholder="e.g., Joint pain in left knee, mild swelling, felt worse after sitting"
-                    value={newSymptom.description}
-                    onChange={(e) => setNewSymptom({ ...newSymptom, description: e.target.value })}
-                    className="form-textarea"
-                    rows="3"
-                  />
-                </div>
-
-                <button className="btn-add-item" onClick={handleAddSymptom}>
-                  + Log Symptom
-                </button>
               </div>
-
-              {/* Symptoms Timeline */}
-              {symptoms.length > 0 && (
-                <div className="dv-timeline">
-                  <h3 className="list-title">Symptom History ({symptoms.length})</h3>
-                  <div className="timeline-container">
-                    {symptoms.map((symptom, idx) => (
-                      <motion.div
-                        key={symptom.id}
-                        className="timeline-item"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                      >
-                        <div className="timeline-dot"></div>
-                        <div className="timeline-content">
-                          <h4 className="timeline-date">{symptom.date}</h4>
-                          <p className="timeline-description">{symptom.description}</p>
-                        </div>
-                        <button
-                          className="btn-remove"
-                          onClick={() => handleRemoveSymptom(symptom.id)}
-                          aria-label="Remove symptom"
-                        >
-                          ✕
-                        </button>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
-          )}
 
-          {/* Summary Tab */}
-          {activeTab === "summary" && (
-            <div className="dv-section">
-              <h2 className="dv-section-title">Pre-Consultation Summary</h2>
-              <p className="dv-section-desc">
-                Generate a comprehensive summary from your medications, symptoms, and reports to
-                share with your doctor.
-              </p>
-
-              {!summary ? (
-                <div className="summary-prompt">
-                  <p className="summary-prompt-text">
-                    {medications.length === 0 && symptoms.length === 0
-                      ? "Add medications and/or symptoms in the tabs above to generate your summary."
-                      : "Ready to generate your doctor visit summary?"}
+            <div className="summary-display">
+              <div className="summary-text">
+                {summary.summaryText.split("\n").map((line, index) => (
+                  <p key={`${line}-${index}`} className={!line.includes(":") && line ? "summary-heading" : ""}>
+                    {line || "\u00A0"}
                   </p>
-                  {(medications.length > 0 || symptoms.length > 0) && (
-                    <motion.button
-                      className="btn-generate-summary"
-                      onClick={handleGenerateSummary}
-                      disabled={loading}
-                      whileHover={{ scale: loading ? 1 : 1.02 }}
-                      whileTap={{ scale: loading ? 1 : 0.98 }}
-                    >
-                      {loading ? (
-                        <>
-                          <span className="spinner"></span>
-                          Generating Summary...
-                        </>
-                      ) : (
-                        "Generate Summary for Doctor"
-                      )}
-                    </motion.button>
-                  )}
-                </div>
-              ) : (
-                <motion.div
-                  className="summary-display"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.45 }}
-                >
-                  <div className="summary-text">
-                    {summary.split("\n").map((line, idx) => (
-                      <p key={idx} className={line.endsWith(":") ? "summary-heading" : ""}>
-                        {line}
-                      </p>
-                    ))}
-                  </div>
-
-                  <div className="summary-actions">
-                    <motion.button
-                      className="btn-download-summary"
-                      onClick={downloadSummary}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      📥 Download as PDF
-                    </motion.button>
-                    <motion.button
-                      className="btn-new-summary"
-                      onClick={() => setSummary(null)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      ↻ Generate New
-                    </motion.button>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Recent Reports Reference - Removed as per simplified design */}
+                ))}
+              </div>
             </div>
+          </div>
+        )}
+      </motion.section>
+
+      <motion.section
+        className="dv-shell dv-timeline-section"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.24 }}
+      >
+        <div className="dv-card-head">
+          <div>
+            <p className="panel-kicker">Progression view</p>
+            <h2 className="panel-title">How your symptom story reads over time</h2>
+          </div>
+          <p className="panel-note">A tidy timeline you can keep updating between appointments.</p>
+        </div>
+
+        <div className="dv-timeline-list">
+          {sortedSymptoms.length ? (
+            sortedSymptoms.map((entry) => (
+              <article key={entry.id} className="dv-timeline-item">
+                <div className="dv-timeline-marker" />
+                <div className="dv-timeline-copy">
+                  <div className="dv-timeline-top">
+                    <strong>{prettyDate(entry.date)}</strong>
+                    <span>{entry.intensity}/10 intensity</span>
+                  </div>
+                  <h3>{entry.location || "General symptom note"}</h3>
+                  <p>{entry.notes}</p>
+                  {entry.triggers ? <small>Trigger noted: {entry.triggers}</small> : null}
+                </div>
+              </article>
+            ))
+          ) : (
+            <div className="dv-empty-inline">No timeline entries yet.</div>
           )}
-        </motion.div>
-      </div>
+        </div>
+      </motion.section>
     </div>
   );
 }

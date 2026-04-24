@@ -1893,6 +1893,719 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* =========================================== */
+/* 13B. CAREINCODE FEATURE REFINEMENTS         */
+/* =========================================== */
+
+.health-reflection-page,
+.doctor-visit-page {
+  min-height: 100vh;
+  padding: 120px 24px 48px;
+  background:
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.1), transparent 28%),
+    linear-gradient(180deg, #f8f7f4 0%, #fdf8ec 100%);
+}
+
+.reflection-shell,
+.dv-shell {
+  width: min(1280px, 100%);
+  margin: 0 auto;
+}
+
+.reflection-header,
+.dv-header,
+.reflection-panel,
+.dv-card,
+.dv-summary-card,
+.dv-timeline-section {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(20, 184, 166, 0.12);
+  border-radius: 24px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(14px);
+}
+
+.reflection-header,
+.dv-header {
+  padding: 28px;
+  margin-bottom: 24px;
+}
+
+.reflection-header-copy,
+.dv-header-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.8fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.page-kicker,
+.panel-kicker,
+.meta-label,
+.mini-label,
+.overview-label {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.reflection-header-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.reflection-meta-card,
+.dv-header-stat {
+  background: rgba(20, 184, 166, 0.06);
+  border: 1px solid rgba(20, 184, 166, 0.1);
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.reflection-meta-card strong,
+.dv-header-stat strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 24px;
+  color: var(--ink);
+}
+
+.reflection-meta-card p,
+.dv-header-stat p {
+  margin: 6px 0 0;
+  color: var(--ink2);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.reflection-grid,
+.dv-main-grid,
+.dv-summary-grid {
+  display: grid;
+  gap: 24px;
+}
+
+.reflection-grid,
+.dv-main-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.reflection-panel,
+.dv-card,
+.dv-summary-card,
+.dv-timeline-section {
+  padding: 28px;
+}
+
+.panel-head,
+.dv-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: start;
+  margin-bottom: 24px;
+}
+
+.panel-title {
+  margin: 8px 0 0;
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.panel-note {
+  max-width: 320px;
+  margin: 0;
+  color: var(--ink2);
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.reflection-vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.reflection-vital-card,
+.dv-form-card,
+.dv-calendar-card,
+.reflection-overview-card,
+.reflection-suggestions-card,
+.lifestyle-context-card,
+.summary-display,
+.dv-empty-inline {
+  background: rgba(248, 247, 244, 0.8);
+  border: 1px solid rgba(20, 184, 166, 0.12);
+  border-radius: 20px;
+}
+
+.reflection-vital-card {
+  padding: 18px;
+  display: block;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.reflection-vital-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(20, 184, 166, 0.28);
+  box-shadow: 0 14px 30px rgba(20, 184, 166, 0.08);
+}
+
+.reflection-vital-head,
+.suggestions-head,
+.dv-day-summary-head,
+.dv-calendar-head,
+.dv-timeline-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.reflection-vital-head h3,
+.suggestions-head h3,
+.lifestyle-context-card h3,
+.dv-day-summary h3,
+.dv-log-card h3,
+.dv-timeline-copy h3 {
+  margin: 4px 0 0;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.reflection-vital-short {
+  font-size: 12px;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.optional-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(20, 184, 166, 0.1);
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.reflection-vital-explainer,
+.dv-log-card p,
+.dv-timeline-copy p {
+  margin: 12px 0;
+  color: var(--ink2);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.reflection-input-wrap {
+  position: relative;
+}
+
+.reflection-input,
+.dv-date-input {
+  width: 100%;
+}
+
+.reflection-input {
+  box-sizing: border-box;
+  padding: 14px 60px 14px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(20, 184, 166, 0.18);
+  background: #fff;
+  font-size: 16px;
+  font-family: var(--body);
+}
+
+.reflection-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
+}
+
+.reflection-unit {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  color: var(--ink3);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reflection-hint {
+  display: block;
+  margin-top: 10px;
+  color: var(--ink3);
+  font-size: 12px;
+}
+
+.reflection-actions,
+.dv-summary-actions,
+.summary-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.subtle-reset,
+.btn-new-summary {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid rgba(20, 184, 166, 0.24);
+}
+
+.reflection-error {
+  margin-top: 14px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.reflection-results-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.reflection-empty {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  text-align: center;
+  min-height: 100%;
+  padding: 40px 20px;
+}
+
+.reflection-empty-ring {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 1px dashed rgba(20, 184, 166, 0.35);
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  font-weight: 700;
+  background: rgba(20, 184, 166, 0.05);
+}
+
+.reflection-empty h3 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.reflection-empty p {
+  max-width: 360px;
+  margin: 0;
+  color: var(--ink2);
+  line-height: 1.7;
+}
+
+.reflection-overview-card,
+.reflection-suggestions-card,
+.lifestyle-context-card,
+.dv-form-card,
+.dv-calendar-card,
+.summary-display {
+  padding: 20px;
+}
+
+.reflection-overview-card p,
+.lifestyle-context-card p {
+  margin: 12px 0 0;
+  color: var(--ink);
+  line-height: 1.7;
+}
+
+.reflection-insights-list,
+.suggestions-list,
+.dv-stacked-list,
+.dv-timeline-list {
+  display: grid;
+  gap: 14px;
+}
+
+.reflection-insight-card {
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid transparent;
+}
+
+.reflection-insight-card.status-good {
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+}
+
+.reflection-insight-card.status-neutral {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.reflection-insight-card.status-warning {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.reflection-insight-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 10px;
+}
+
+.reflection-insight-top h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.reflection-insight-card p {
+  margin: 0;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.reflection-insight-value {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--ink2);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.insight-status-badge {
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge-good {
+  background: #d1fae5;
+  color: #0f766e;
+}
+
+.badge-neutral {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-warning {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.suggestions-head span,
+.dv-day-summary-head span,
+.dv-fact-pill {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(20, 184, 166, 0.1);
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.suggestion-item {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+}
+
+.suggestion-item p {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.65;
+}
+
+.suggestion-dot,
+.dv-timeline-marker {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 7px;
+  flex-shrink: 0;
+}
+
+.question-index {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 184, 166, 0.12);
+  color: var(--accent);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.lifestyle-context-grid,
+.dv-facts-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.lifestyle-context-grid > div {
+  min-width: 150px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px;
+  border: 1px solid rgba(20, 184, 166, 0.1);
+}
+
+.lifestyle-context-grid span {
+  display: block;
+  color: var(--ink3);
+  font-size: 12px;
+}
+
+.lifestyle-context-grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ink);
+}
+
+.dv-header-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.8fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.dv-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dv-field {
+  display: block;
+}
+
+.dv-field > span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.dv-log-card,
+.dv-timeline-item {
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  align-items: start;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(20, 184, 166, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.dv-log-card span,
+.dv-timeline-copy small {
+  color: var(--ink3);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.dv-calendar-head strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 22px;
+  color: var(--ink);
+}
+
+.dv-calendar-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dv-day-card {
+  border: 1px solid rgba(20, 184, 166, 0.12);
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: start;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.dv-day-card span,
+.dv-day-card small,
+.dv-day-card i {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--ink3);
+}
+
+.dv-day-card strong {
+  font-size: 20px;
+  color: var(--ink);
+}
+
+.dv-day-card em {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.dv-day-card.selected {
+  border-color: rgba(20, 184, 166, 0.36);
+  background: rgba(20, 184, 166, 0.08);
+}
+
+.dv-day-card.has-entry {
+  box-shadow: inset 0 -3px 0 rgba(20, 184, 166, 0.3);
+}
+
+.dv-intensity-wrap {
+  display: grid;
+  gap: 10px;
+}
+
+.dv-range {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.dv-intensity-meta {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink2);
+  font-size: 13px;
+}
+
+.summary-prompt {
+  padding: 24px;
+  text-align: center;
+  color: var(--ink2);
+  line-height: 1.7;
+}
+
+.dv-summary-grid {
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  margin-top: 22px;
+}
+
+.summary-text {
+  max-height: 460px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--surface2);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.summary-text p {
+  margin: 0 0 10px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.summary-heading {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.dv-timeline-item {
+  justify-content: flex-start;
+}
+
+.dv-timeline-copy {
+  flex: 1;
+}
+
+@media (max-width: 1100px) {
+  .reflection-grid,
+  .dv-main-grid,
+  .dv-summary-grid,
+  .reflection-header-copy,
+  .dv-header-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reflection-header-meta {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .health-reflection-page,
+  .doctor-visit-page {
+    padding: 96px 16px 24px;
+  }
+
+  .reflection-header,
+  .dv-header,
+  .reflection-panel,
+  .dv-card,
+  .dv-summary-card,
+  .dv-timeline-section {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .panel-head,
+  .dv-card-head,
+  .reflection-actions,
+  .dv-summary-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reflection-vitals-grid,
+  .dv-form-grid,
+  .dv-calendar-grid,
+  .reflection-header-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .dv-calendar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dv-log-card,
+  .dv-timeline-item {
+    padding: 14px;
+  }
+
+  .btn-analyze,
+  .btn-new-summary,
+  .btn-generate-summary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .reflection-title,
+  .dv-title {
+    font-size: 24px;
+  }
+
+  .panel-title {
+    font-size: 22px;
+  }
+
+  .dv-calendar-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================== */
 /* 12. FOOTER                                   */
 /* =========================================== */
 
