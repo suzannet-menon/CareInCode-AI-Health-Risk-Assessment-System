@@ -39,11 +39,25 @@ export default function Dashboard() {
         {cards.map((card, i) => (
           <motion.div
             key={card.title}
+            className="dashboard-card-wrap"
             style={{ width: "100%", height: "100%" }}
             initial={{ opacity: 0, y: 35 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.12 }}
           >
+            <motion.div
+              className="dashboard-orbit"
+              animate={{
+                x: [0, 16, 0],
+                y: [0, -10, 0],
+                opacity: [0.35, 0.7, 0.35],
+              }}
+              transition={{
+                duration: 5 + i,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
             <article
               onClick={() => navigate(card.route)}
               className="dashboard-card"

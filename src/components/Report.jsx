@@ -121,6 +121,8 @@ export default function Report() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
       >
+        <div className="feature-orbit orbit-left" aria-hidden="true" />
+        <div className="feature-orbit orbit-right" aria-hidden="true" />
         <div>
           <h1 className="report-heading">Report Simplifier</h1>
           <p className="report-desc">

@@ -282,6 +282,8 @@ export default function DoctorVisitPrep() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
       >
+        <div className="feature-orbit orbit-left" aria-hidden="true" />
+        <div className="feature-orbit orbit-right" aria-hidden="true" />
         <button onClick={() => navigate("/dashboard")} className="back-btn" type="button">
           {"<-"} Dashboard
         </button>
