@@ -6,7 +6,7 @@ const cards = [
     title: "Health Reflection Tool",
     desc: "Review your daily vitals with simple explanations grounded in your routine.",
     icon: "O",
-    route: "/finder",
+    route: "/health-reflection",
     tag: "Vitals",
     subtext: "See patterns in blood pressure, heart rate, oxygen, and everyday lifestyle habits.",
   },
@@ -19,12 +19,12 @@ const cards = [
     subtext: "Understand difficult medical terms in plain language without leaving the dashboard.",
   },
   {
-    title: "Health Visualisation",
-    desc: "Track your reports across time using a structured view.",
+    title: "Doctor Visit Prep",
+    desc: "Organize medications, log symptoms, and prepare for your appointment.",
     icon: "~",
-    route: "/visualisation",
-    tag: "History",
-    subtext: "Compare records over time so changes are easier to spot before your next visit.",
+    route: "/doctor-visit-prep",
+    tag: "Preparation",
+    subtext: "Generate a comprehensive summary to share with your doctor.",
   },
 ];
 

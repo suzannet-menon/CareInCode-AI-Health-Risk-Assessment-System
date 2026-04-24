@@ -10,6 +10,9 @@ import Login from "./components/Login";
 import Signup from "./components/signup";
 import Dashboard from "./components/Dashboard";
 import Report from "./components/Report";
+import HealthReflection from "./components/HealthReflection";
+import DoctorVisitPrep from "./components/DoctorVisitPrep";
+import HealthVisualisation from "./components/HealthVisualisation";
 import "./App.css";
 
 function Home() {
@@ -35,6 +38,9 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/report" element={<Report />} />
+        <Route path="/health-reflection" element={<HealthReflection />} />
+        <Route path="/doctor-visit-prep" element={<DoctorVisitPrep />} />
+        <Route path="/visualisation" element={<HealthVisualisation />} />
       </Routes>
     </div>
   );
