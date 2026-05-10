@@ -3,18 +3,28 @@
 
 # Python
 venv/
+backend/venv/
 __pycache__/
 *.pyc
 
-# Database / vector db
+# Vector DB
 chroma_db/
+
+# Uploads
+uploads/
+
+# Generated reports
+*.pdf
+*.json
 
 # VS Code
 .vscode/
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
+# Temporary files
+backend/test.txt
+backend/main
+uvicorn
