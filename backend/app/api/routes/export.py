@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi.responses import FileResponse
 
 from app.export.export_service import (
     export_json,
@@ -42,9 +43,11 @@ async def export_as_json():
         "health_report.json"
     )
 
-    return {
-        "file": filepath
-    }
+    return FileResponse(
+        path=filepath,
+        filename="health_report.json",
+        media_type="application/json"
+    )
 
 
 @router.post("/pdf")
@@ -78,6 +81,8 @@ async def export_as_pdf():
         "health_report.pdf"
     )
 
-    return {
-        "file": filepath
-    }
+    return FileResponse(
+        path=filepath,
+        filename="health_report.pdf",
+        media_type="application/pdf"
+    )
