@@ -1,0 +1,30 @@
+# Environment
+.env
+
+# Python
+venv/
+backend/venv/
+__pycache__/
+*.pyc
+
+# Vector DB
+chroma_db/
+
+# Uploads
+uploads/
+
+# Generated reports
+*.pdf
+*.json
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+backend/test.txt
+backend/main
+uvicorn

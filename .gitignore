@@ -7,16 +7,36 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Frontend
 node_modules
 dist
 dist-ssr
 *.local
+
+# Python backend
+venv/
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# Chroma / vector DB
+chroma_db/
+
+# Uploads / temp OCR files
+uploads/
+temp_pdf_pages/
+
+# Generated reports
+*.pdf
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
