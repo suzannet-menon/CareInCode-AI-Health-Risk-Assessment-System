@@ -10,10 +10,22 @@ from app.insight.vitals_doctor_prep import (
     generate_vitals_questions
 )
 
+from app.formatter.response_builder import (
+    build_structured_response
+)
+
+from app.services.analysis_storage_service import (
+    save_vitals_analysis
+)
+
 
 def process_vitals(
     vitals_data: dict
 ):
+
+    # =========================
+    # ANALYZE VITALS
+    # =========================
 
     analysis = analyze_vitals(
         vitals_data
@@ -23,35 +35,115 @@ def process_vitals(
 
     insights = analysis["insights"]
 
+    # =========================
+    # RAG EVIDENCE
+    # =========================
+
     evidence = get_vitals_evidence(
         risks
     )
+
+    # =========================
+    # DOCTOR PREP
+    # =========================
 
     doctor_prep = generate_vitals_questions(
         vitals_data,
         risks
     )
 
-    return {
+    doctor_questions = (
+        doctor_prep.get(
+            "questions",
+            []
+        )
+    )
 
-        "disclaimer":
-            "This system provides educational health insights and is not a medical diagnosis. Please consult a qualified healthcare professional.",
+    # =========================
+    # NEXT STEPS
+    # =========================
 
-        "summary":
-            "Health vitals analyzed successfully.",
+    next_steps = []
 
-        "risk_indicators":
-            risks,
+    for risk in risks:
 
-        "insights":
-            insights,
+        risk_type = risk.get(
+            "type",
+            ""
+        )
 
-        "evidence":
-            evidence,
+        # HEART RATE
+        if risk_type == "heart_rate":
 
-        "doctor_prep":
-            doctor_prep,
+            next_steps.append(
+                "Monitor heart rate regularly"
+            )
 
-        "confidence":
-            0.82
-    }
+        # SPO2
+        elif risk_type == "spo2":
+
+            next_steps.append(
+                "Monitor oxygen levels closely"
+            )
+
+        # BLOOD PRESSURE
+        elif risk_type == "blood_pressure":
+
+            next_steps.append(
+                "Track blood pressure daily"
+            )
+
+        # TEMPERATURE
+        elif risk_type == "temperature":
+
+            next_steps.append(
+                "Monitor temperature changes"
+            )
+
+    # DEFAULT NEXT STEPS
+    if not next_steps:
+
+        next_steps = [
+
+            "Maintain healthy lifestyle habits",
+
+            "Continue monitoring vitals regularly"
+        ]
+
+    # =========================
+    # SUMMARY
+    # =========================
+
+    summary = (
+        "Vital signs were analyzed for "
+        "potential health pattern changes."
+    )
+
+    # =========================
+    # BUILD STRUCTURED RESPONSE
+    # =========================
+
+    response = build_structured_response(
+
+        summary=summary,
+
+        risk_indicators=risks,
+
+        evidence=evidence,
+
+        doctor_questions=doctor_questions,
+
+        next_steps=next_steps,
+
+        confidence=0.82
+    )
+
+    # =========================
+    # SAVE FOR EXPORTS
+    # =========================
+
+    save_vitals_analysis({
+        "analysis": response
+    })
+
+    return response

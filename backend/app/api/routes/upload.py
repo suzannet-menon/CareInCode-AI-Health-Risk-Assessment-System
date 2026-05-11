@@ -15,6 +15,10 @@ from app.services.health_record_service import (
     save_health_record_db
 )
 
+from app.services.analysis_storage_service import (
+    save_report_analysis
+)
+
 from app.ocr.easyocr_engine import (
     extract_text_from_image
 )
@@ -40,6 +44,14 @@ from app.insight.trend_engine import (
     analyze_trends
 )
 
+from app.insight.report_classifier import (
+    classify_medical_report
+)
+
+from app.formatter.response_builder import (
+    build_structured_response
+)
+
 router = APIRouter(
     prefix="/upload",
     tags=["Upload"]
@@ -51,7 +63,10 @@ async def upload_report(
     file: UploadFile = File(...)
 ):
 
-    # Safety check
+    # =========================
+    # SAFETY CHECK
+    # =========================
+
     if not file.filename:
 
         return {
@@ -60,17 +75,26 @@ async def upload_report(
 
     filename = file.filename.lower()
 
-    # File validation
+    # =========================
+    # FILE VALIDATION
+    # =========================
+
     if not validate_file(filename):
 
         return {
             "error": "Invalid file type"
         }
 
-    # Save uploaded file
+    # =========================
+    # SAVE FILE
+    # =========================
+
     file_path = save_uploaded_file(file)
 
-    # OCR / text extraction
+    # =========================
+    # OCR / PDF EXTRACTION
+    # =========================
+
     if filename.endswith(".pdf"):
 
         extracted = extract_text_from_pdf(
@@ -83,70 +107,270 @@ async def upload_report(
             file_path
         )
 
-    # Structured metrics extraction
-    metrics = extract_structured_metrics(
-        extracted["text"]
+    extracted_text = extracted.get(
+        "text",
+        ""
     )
 
-    # Temporary demo user ID
+    # =========================
+    # REPORT CLASSIFICATION
+    # =========================
+
+    report_type = classify_medical_report(
+        extracted_text
+    )
+
+    # =========================
+    # STRUCTURED METRICS
+    # =========================
+
+    metrics = extract_structured_metrics(
+        extracted_text
+    )
+
+    # =========================
+    # DEMO USER
+    # =========================
+
     user_id = "demo_user"
 
-    # Save memory record
+    # =========================
+    # MEMORY STORAGE
+    # =========================
+
     save_health_record(
         user_id,
         metrics
     )
 
-    # Fetch historical records
+    # =========================
+    # USER HISTORY
+    # =========================
+
     history = get_user_history(
         user_id
     )
 
-    # Trend analysis
+    # =========================
+    # TREND ANALYSIS
+    # =========================
+
     trend_analysis = analyze_trends(
         history
     )
 
-    # Structured insight engine
+    # =========================
+    # RISK ANALYSIS
+    # =========================
+
     risk_indicators = analyze_health_data(
-        extracted["text"]
+        extracted_text
     )
 
-    # Doctor preparation engine
+    # =========================
+    # DOCTOR PREP
+    # =========================
+
     doctor_prep = generate_doctor_prep(
         risk_indicators
     )
 
-    # AI analysis
-    analysis = analyze_health_text(
-        extracted["text"]
+    doctor_questions = (
+        doctor_prep.get(
+            "questions",
+            []
+        )
     )
 
-    # Inject structured risks
-    analysis["risk_indicators"] = (
-        risk_indicators
+    # =========================
+    # AI ANALYSIS
+    # =========================
+
+    ai_result = analyze_health_text(
+        extracted_text
     )
 
-    # Inject doctor prep
-    analysis["doctor_prep"] = (
-        doctor_prep
+    # =========================
+    # EVIDENCE
+    # =========================
+
+    evidence = ai_result.get(
+        "evidence",
+        []
     )
 
-    # Save persistent DB record
+    # =========================
+    # NEXT STEPS
+    # =========================
+
+    next_steps = []
+
+    for risk in risk_indicators:
+
+        risk_type = risk.get(
+            "type",
+            ""
+        )
+
+        # HEART RATE
+        if risk_type == "heart_rate":
+
+            next_steps.append(
+                "Monitor heart rate regularly"
+            )
+
+        # SPO2
+        elif risk_type == "spo2":
+
+            next_steps.append(
+                "Monitor oxygen levels closely"
+            )
+
+        # BLOOD PRESSURE
+        elif risk_type == "blood_pressure":
+
+            next_steps.append(
+                "Track blood pressure daily"
+            )
+
+        # TEMPERATURE
+        elif risk_type == "temperature":
+
+            next_steps.append(
+                "Monitor temperature changes"
+            )
+
+    # =========================
+    # REPORT-SPECIFIC STEPS
+    # =========================
+
+    if report_type == "diabetes":
+
+        next_steps.extend([
+
+            "Monitor blood sugar regularly",
+
+            "Discuss HbA1c trends with your doctor"
+        ])
+
+    elif report_type == "lipid":
+
+        next_steps.extend([
+
+            "Monitor cholesterol levels",
+
+            "Discuss cardiovascular risk factors"
+        ])
+
+    elif report_type == "thyroid":
+
+        next_steps.extend([
+
+            "Monitor thyroid hormone levels",
+
+            "Track symptoms like fatigue or weight changes"
+        ])
+
+    elif report_type == "kidney":
+
+        next_steps.extend([
+
+            "Stay hydrated",
+
+            "Monitor kidney function tests regularly"
+        ])
+
+    elif report_type == "liver":
+
+        next_steps.extend([
+
+            "Avoid alcohol if medically advised",
+
+            "Monitor liver enzyme trends"
+        ])
+
+    elif report_type == "cbc":
+
+        next_steps.extend([
+
+            "Review blood count trends with your doctor"
+        ])
+
+    # =========================
+    # DEFAULT NEXT STEPS
+    # =========================
+
+    if not next_steps:
+
+        next_steps = [
+
+            "Monitor symptoms closely",
+
+            "Consult a healthcare professional if symptoms worsen"
+        ]
+
+    # REMOVE DUPLICATES
+    next_steps = list(
+        set(next_steps)
+    )
+
+    # =========================
+    # STRUCTURED RESPONSE
+    # =========================
+
+    analysis = build_structured_response(
+
+        summary=ai_result.get(
+            "summary",
+            "Health report analyzed successfully."
+        ),
+
+        risk_indicators=risk_indicators,
+
+        evidence=evidence,
+
+        doctor_questions=doctor_questions,
+
+        next_steps=next_steps,
+
+        confidence=0.84
+    )
+
+    # =========================
+    # SAVE FOR EXPORTS
+    # =========================
+
+    save_report_analysis({
+        "analysis": analysis
+    })
+
+    # =========================
+    # SAVE DB RECORD
+    # =========================
+
     save_health_record_db(
 
         user_id=user_id,
 
-        report_text=extracted["text"],
+        report_text=extracted_text,
 
         analysis=analysis
     )
 
+    # =========================
+    # FINAL RESPONSE
+    # =========================
+
     return {
 
-        "ocr": extracted,
+        "report_type":
+            report_type,
 
-        "analysis": analysis,
+        "ocr":
+            extracted,
+
+        "analysis":
+            analysis,
 
         "trend_analysis":
             trend_analysis

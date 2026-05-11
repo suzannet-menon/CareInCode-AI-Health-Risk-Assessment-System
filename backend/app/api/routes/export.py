@@ -6,6 +6,12 @@ from app.export.export_service import (
     export_pdf
 )
 
+from app.services.analysis_storage_service import (
+    get_text_analysis,
+    get_vitals_analysis,
+    get_report_analysis
+)
+
 router = APIRouter(
     prefix="/export",
     tags=["Export"]
@@ -17,10 +23,19 @@ router = APIRouter(
 # =========================
 
 @router.post("/text/pdf")
-async def export_text_pdf(data: dict):
+async def export_text_pdf():
+
+    analysis_data = get_text_analysis()
+
+    if not analysis_data:
+
+        return {
+            "error":
+            "No text analysis available yet"
+        }
 
     filepath = export_pdf(
-        data,
+        analysis_data,
         "text_analysis_report.pdf"
     )
 
@@ -32,10 +47,19 @@ async def export_text_pdf(data: dict):
 
 
 @router.post("/text/json")
-async def export_text_json(data: dict):
+async def export_text_json():
+
+    analysis_data = get_text_analysis()
+
+    if not analysis_data:
+
+        return {
+            "error":
+            "No text analysis available yet"
+        }
 
     filepath = export_json(
-        data,
+        analysis_data,
         "text_analysis_report.json"
     )
 
@@ -51,10 +75,19 @@ async def export_text_json(data: dict):
 # =========================
 
 @router.post("/report/pdf")
-async def export_report_pdf(data: dict):
+async def export_report_pdf():
+
+    analysis_data = get_report_analysis()
+
+    if not analysis_data:
+
+        return {
+            "error":
+            "No OCR report analysis available yet"
+        }
 
     filepath = export_pdf(
-        data,
+        analysis_data,
         "ocr_report.pdf"
     )
 
@@ -66,10 +99,19 @@ async def export_report_pdf(data: dict):
 
 
 @router.post("/report/json")
-async def export_report_json(data: dict):
+async def export_report_json():
+
+    analysis_data = get_report_analysis()
+
+    if not analysis_data:
+
+        return {
+            "error":
+            "No OCR report analysis available yet"
+        }
 
     filepath = export_json(
-        data,
+        analysis_data,
         "ocr_report.json"
     )
 
@@ -85,10 +127,19 @@ async def export_report_json(data: dict):
 # =========================
 
 @router.post("/vitals/pdf")
-async def export_vitals_pdf(data: dict):
+async def export_vitals_pdf():
+
+    analysis_data = get_vitals_analysis()
+
+    if not analysis_data:
+
+        return {
+            "error":
+            "No vitals analysis available yet"
+        }
 
     filepath = export_pdf(
-        data,
+        analysis_data,
         "vitals_report.pdf"
     )
 
@@ -100,10 +151,19 @@ async def export_vitals_pdf(data: dict):
 
 
 @router.post("/vitals/json")
-async def export_vitals_json(data: dict):
+async def export_vitals_json():
+
+    analysis_data = get_vitals_analysis()
+
+    if not analysis_data:
+
+        return {
+            "error":
+            "No vitals analysis available yet"
+        }
 
     filepath = export_json(
-        data,
+        analysis_data,
         "vitals_report.json"
     )
 

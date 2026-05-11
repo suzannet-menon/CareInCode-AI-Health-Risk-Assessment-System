@@ -46,6 +46,15 @@ def export_pdf(
 
     elements = []
 
+    analysis = data.get(
+        "analysis",
+        {}
+    )
+
+    # =========================
+    # TITLE
+    # =========================
+
     elements.append(
         Paragraph(
             "CareInCode+ Health Report",
@@ -72,7 +81,10 @@ def export_pdf(
         Spacer(1, 12)
     )
 
+    # =========================
     # SUMMARY
+    # =========================
+
     elements.append(
         Paragraph(
             "<b>Summary</b>",
@@ -82,7 +94,10 @@ def export_pdf(
 
     elements.append(
         Paragraph(
-            data["analysis"]["summary"],
+            analysis.get(
+                "summary",
+                "No summary available."
+            ),
             styles["BodyText"]
         )
     )
@@ -91,7 +106,37 @@ def export_pdf(
         Spacer(1, 12)
     )
 
+    # =========================
+    # RISK LEVEL
+    # =========================
+
+    risk_level = analysis.get(
+        "risk_level",
+        "unknown"
+    )
+
+    elements.append(
+        Paragraph(
+            "<b>Risk Level</b>",
+            styles["Heading2"]
+        )
+    )
+
+    elements.append(
+        Paragraph(
+            risk_level.upper(),
+            styles["BodyText"]
+        )
+    )
+
+    elements.append(
+        Spacer(1, 12)
+    )
+
+    # =========================
     # RISKS
+    # =========================
+
     elements.append(
         Paragraph(
             "<b>Risk Indicators</b>",
@@ -99,11 +144,16 @@ def export_pdf(
         )
     )
 
-    for risk in data["analysis"]["risk_indicators"]:
+    risks = analysis.get(
+        "risk_indicators",
+        []
+    )
+
+    for risk in risks:
 
         risk_text = (
-            f"{risk['type']} "
-            f"({risk['severity']})"
+            f"{risk.get('indicator', risk.get('type', 'Unknown'))} "
+            f"({risk.get('severity', 'unknown')})"
         )
 
         elements.append(
@@ -117,26 +167,86 @@ def export_pdf(
         Spacer(1, 12)
     )
 
-    # DOCTOR PREP
-    doctor_prep = (
-        data["analysis"]["doctor_prep"]
-    )
+    # =========================
+    # EVIDENCE
+    # =========================
 
     elements.append(
         Paragraph(
-            "<b>Doctor Prep</b>",
+            "<b>Evidence</b>",
             styles["Heading2"]
         )
     )
 
+    evidence = analysis.get(
+        "evidence",
+        []
+    )
+
+    for item in evidence:
+
+        elements.append(
+            Paragraph(
+                f"• {item}",
+                styles["BodyText"]
+            )
+        )
+
+    elements.append(
+        Spacer(1, 12)
+    )
+
+    # =========================
+    # NEXT STEPS
+    # =========================
+
     elements.append(
         Paragraph(
-            doctor_prep["summary"],
-            styles["BodyText"]
+            "<b>Next Steps</b>",
+            styles["Heading2"]
         )
     )
 
-    for q in doctor_prep["questions"]:
+    next_steps = analysis.get(
+        "next_steps",
+        []
+    )
+
+    for step in next_steps:
+
+        elements.append(
+            Paragraph(
+                f"• {step}",
+                styles["BodyText"]
+            )
+        )
+
+    elements.append(
+        Spacer(1, 12)
+    )
+
+    # =========================
+    # DOCTOR QUESTIONS
+    # =========================
+
+    elements.append(
+        Paragraph(
+            "<b>Questions For Doctor</b>",
+            styles["Heading2"]
+        )
+    )
+
+    doctor_prep = analysis.get(
+        "doctor_prep",
+        {}
+    )
+
+    questions = doctor_prep.get(
+        "questions_for_doctor",
+        []
+    )
+
+    for q in questions:
 
         elements.append(
             Paragraph(
@@ -149,42 +259,10 @@ def export_pdf(
         Spacer(1, 12)
     )
 
-    # TRENDS
-    elements.append(
-        Paragraph(
-            "<b>Trend Analysis</b>",
-            styles["Heading2"]
-        )
-    )
-
-    trend_analysis = (
-        data.get(
-            "trend_analysis",
-            {}
-        )
-    )
-
-    for key, value in trend_analysis.items():
-
-        trend_text = (
-            f"{key}: "
-            f"{value['previous']} → "
-            f"{value['current']} "
-            f"({value['trend']})"
-        )
-
-        elements.append(
-            Paragraph(
-                trend_text,
-                styles["BodyText"]
-            )
-        )
-
-    elements.append(
-        Spacer(1, 12)
-    )
-
+    # =========================
     # DISCLAIMER
+    # =========================
+
     elements.append(
         Paragraph(
             "<b>Disclaimer</b>",
@@ -194,10 +272,44 @@ def export_pdf(
 
     elements.append(
         Paragraph(
-            data["analysis"]["disclaimer"],
+            analysis.get(
+                "disclaimer",
+                "Educational information only."
+            ),
             styles["BodyText"]
         )
     )
+
+    elements.append(
+        Spacer(1, 12)
+    )
+
+    # =========================
+    # CONFIDENCE
+    # =========================
+
+    confidence = analysis.get(
+        "confidence",
+        0.0
+    )
+
+    elements.append(
+        Paragraph(
+            "<b>Confidence</b>",
+            styles["Heading2"]
+        )
+    )
+
+    elements.append(
+        Paragraph(
+            str(confidence),
+            styles["BodyText"]
+        )
+    )
+
+    # =========================
+    # BUILD PDF
+    # =========================
 
     doc.build(elements)
 

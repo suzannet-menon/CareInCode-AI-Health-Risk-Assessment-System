@@ -1,7 +1,5 @@
 from app.ai.llm_client import llm_client
 
-from app.formatter.response_formatter import format_response
-
 from app.insight.engine import (
     analyze_health_data
 )
@@ -17,81 +15,204 @@ from app.core.safety_guard import (
     generate_blocked_response
 )
 
+from app.formatter.response_builder import (
+    build_structured_response
+)
+
 
 def analyze_health_text(user_input: str):
 
-    # Prompt injection block
+    # =========================
+    # PROMPT INJECTION BLOCK
+    # =========================
+
     if detect_prompt_injection(user_input):
 
         return generate_blocked_response()
 
-    # High-risk symptom detection
+    # =========================
+    # HIGH-RISK SAFETY CHECK
+    # =========================
+
     detected_risks = detect_high_risk(user_input)
 
     if detected_risks:
 
-        return generate_emergency_response(detected_risks)
+        return generate_emergency_response(
+            detected_risks
+        )
 
-    # Normal AI flow
+    # =========================
+    # CONCISE HEALTH PROMPT
+    # =========================
+
     prompt = f"""
-    You are a safe healthcare education assistant.
+    You are a healthcare education assistant.
 
     STRICT RULES:
-    - Never diagnose disease
+    - Never diagnose diseases
     - Never prescribe medication
     - Never act as a doctor
-    - Only provide educational insights
-    - Use cautious and probabilistic language
+    - Use concise language
+    - Maximum 2-3 sentences
+    - Avoid long explanations
+    - Avoid medical essays
+    - Focus on patient-friendly guidance
 
     User input:
     {user_input}
 
     Provide:
-    - Educational insights
-    - Possible health trends
-    - General wellness guidance
-    - Doctor discussion suggestions
+    - Brief educational interpretation
+    - Possible health concern level
+    - Simple wellness guidance
     """
 
     result = llm_client.generate(prompt)
 
-    # AI failure handling
+    # =========================
+    # AI FAILURE HANDLING
+    # =========================
+
     if not result["success"]:
 
         return {
 
-            "disclaimer":
+            "summary":
                 "AI analysis temporarily unavailable.",
 
-            "summary":
-                result["error"],
+            "risk_level":
+                "low",
 
             "risk_indicators": [],
-
-            "insights": [],
 
             "evidence": [],
 
             "doctor_prep": {
-                "summary": "",
-                "questions": []
+                "questions_for_doctor": []
             },
+
+            "next_steps": [
+                "Please try again later"
+            ],
+
+            "disclaimer":
+                (
+                    "Educational information only. "
+                    "Not a medical diagnosis."
+                ),
 
             "confidence": 0.0
         }
 
-    # ML / rule-based insight engine
+    # =========================
+    # ML / RULE-BASED ENGINE
+    # =========================
+
     risk_indicators = analyze_health_data(
         user_input
     )
 
-    # Doctor preparation engine
+    # =========================
+    # DOCTOR PREP
+    # =========================
+
     doctor_prep = generate_doctor_prep(
         risk_indicators
     )
 
-    return format_response(
-        result["text"],
-        risk_indicators,
-        doctor_prep
+    doctor_questions = (
+        doctor_prep.get(
+            "questions",
+            []
+        )
+    )
+
+    # =========================
+    # EVIDENCE EXTRACTION
+    # =========================
+
+    evidence = []
+
+    next_steps = []
+
+    lowered = user_input.lower()
+
+    # BREATHING
+    if "breath" in lowered:
+
+        evidence.append(
+            "User reported breathing difficulty"
+        )
+
+        next_steps.extend([
+
+            "Monitor symptoms closely",
+
+            "Avoid smoke or strong irritants",
+
+            "Seek urgent care if symptoms worsen"
+        ])
+
+    # CHEST PAIN
+    if "chest pain" in lowered:
+
+        evidence.append(
+            "User reported chest pain"
+        )
+
+        next_steps.append(
+            "Seek urgent medical evaluation"
+        )
+
+    # FEVER
+    if "fever" in lowered:
+
+        evidence.append(
+            "User reported fever"
+        )
+
+        next_steps.append(
+            "Stay hydrated and monitor temperature"
+        )
+
+    # DIZZINESS
+    if "dizzy" in lowered:
+
+        evidence.append(
+            "User reported dizziness"
+        )
+
+        next_steps.append(
+            "Avoid sudden standing movements"
+        )
+
+    # FAINTING
+    if "faint" in lowered:
+
+        evidence.append(
+            "User reported fainting episodes"
+        )
+
+        next_steps.append(
+            "Medical evaluation is recommended"
+        )
+
+    # =========================
+    # BUILD FINAL RESPONSE
+    # =========================
+
+    return build_structured_response(
+
+        summary=result["text"],
+
+        risk_indicators=risk_indicators,
+
+        evidence=evidence,
+
+        doctor_questions=doctor_questions,
+
+        next_steps=next_steps,
+
+        confidence=0.80
     )
