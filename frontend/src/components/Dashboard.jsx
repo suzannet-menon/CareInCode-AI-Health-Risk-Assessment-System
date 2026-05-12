@@ -38,44 +38,58 @@ function DoctorPrepIcon() {
   );
 }
 
+function PulseMiniIcon() {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true" className="dashboard-mini-svg">
+      <path
+        d="M4 17h5l3-6 5 10 3-6h8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function PlusMiniIcon() {
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true" className="dashboard-mini-svg">
+      <path d="M16 8v16M8 16h16" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const cards = [
   {
     title: "Health Reflection Tool",
     desc: "Review your daily vitals with simple explanations grounded in your routine.",
-    icon: <VitalsIcon />,
+    Icon: VitalsIcon,
     route: "/health-reflection",
     tag: "Vitals",
     tone: "mint",
-    previewTitle: "Today's pulse",
-    previewValue: "74 bpm",
-    previewMeta: "SpO2 stable, BP logged",
-    highlights: ["Oxygen", "Blood pressure", "Heart rate"],
+    accents: [PulseMiniIcon, PlusMiniIcon],
     subtext: "See patterns in blood pressure, heart rate, oxygen, and everyday lifestyle habits.",
   },
   {
     title: "Report Simplifier",
     desc: "Upload reports and receive clear AI-driven explanations.",
-    icon: <ReportIcon />,
+    Icon: ReportIcon,
     route: "/report",
     tag: "AI Insights",
     tone: "sand",
-    previewTitle: "Latest report",
-    previewValue: "3 markers flagged",
-    previewMeta: "Plain-language summary ready",
-    highlights: ["Blood report", "Thyroid", "Radiology text"],
+    accents: [ReportIcon, PlusMiniIcon],
     subtext: "Understand difficult medical terms in plain language without leaving the dashboard.",
   },
   {
     title: "Doctor Visit Prep",
     desc: "Organize medications, log symptoms, and prepare for your appointment.",
-    icon: <DoctorPrepIcon />,
+    Icon: DoctorPrepIcon,
     route: "/doctor-visit-prep",
     tag: "Preparation",
     tone: "sky",
-    previewTitle: "Visit summary",
-    previewValue: "4 questions ready",
-    previewMeta: "Medication and symptom timeline linked",
-    highlights: ["Medication log", "Symptom tracker", "Doctor summary"],
+    accents: [DoctorPrepIcon, PulseMiniIcon],
     subtext: "Generate a comprehensive summary to share with your doctor.",
   },
 ];
@@ -123,6 +137,14 @@ export default function Dashboard() {
                 }}
               />
 
+              <div className="dashboard-card-ornaments" aria-hidden="true">
+                {card.accents.map((AccentIcon, index) => (
+                  <span key={`${card.title}-accent-${index}`} className="dashboard-ornament-badge">
+                    <AccentIcon />
+                  </span>
+                ))}
+              </div>
+
               <div className="dashboard-card-content">
                 <div className="dashboard-card-main">
                   <motion.div
@@ -134,7 +156,9 @@ export default function Dashboard() {
                       ease: "easeInOut",
                     }}
                   >
-                    <span className="dashboard-card-icon">{card.icon}</span>
+                    <span className="dashboard-card-icon">
+                      <card.Icon />
+                    </span>
                   </motion.div>
 
                   <span className="dashboard-chip">{card.tag}</span>

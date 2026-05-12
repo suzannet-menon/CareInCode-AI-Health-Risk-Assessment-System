@@ -4395,6 +4395,8 @@ a, button, .profile-tab { cursor: pointer; }
 .dv-title.profile-page-heading,
 .reflection-title {
   margin: 6px 0 10px;
+  display: inline-block;
+  max-width: 100%;
   font-family: var(--serif);
   font-size: clamp(40px, 5vw, 58px);
   line-height: 0.98;
@@ -4409,7 +4411,7 @@ a, button, .profile-tab { cursor: pointer; }
 .reflection-title::after {
   content: "";
   display: block;
-  width: 96px;
+  width: 100%;
   height: 6px;
   margin-top: 16px;
   border-radius: 999px;
@@ -4577,14 +4579,41 @@ a, button, .profile-tab { cursor: pointer; }
   height: 100%;
   border-radius: 26px;
   border: 1px solid rgba(20, 184, 166, 0.12);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 248, 244, 0.94));
-  box-shadow: 0 16px 40px rgba(20, 38, 34, 0.06);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(249, 248, 244, 0.78)),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.68), transparent 36%);
+  box-shadow: 0 18px 44px rgba(20, 38, 34, 0.07);
+  backdrop-filter: blur(18px);
+  overflow: hidden;
 }
 
 .dashboard .dashboard-card-content {
   min-height: 520px;
   padding: 32px;
   justify-content: space-between;
+}
+
+.dashboard .dashboard-card::before {
+  display: block;
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 25px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.04));
+  pointer-events: none;
+}
+
+.dashboard .dashboard-card::after {
+  content: "";
+  position: absolute;
+  right: -36px;
+  top: -42px;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.12), rgba(20, 184, 166, 0));
+  opacity: 0.8;
+  pointer-events: none;
 }
 
 .dashboard .dashboard-card-main {
@@ -4605,6 +4634,8 @@ a, button, .profile-tab { cursor: pointer; }
   align-items: center;
   justify-content: center;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.42), 0 16px 30px rgba(20,184,166,0.12);
+  position: relative;
+  z-index: 2;
 }
 
 .dashboard-chip {
@@ -4644,6 +4675,47 @@ a, button, .profile-tab { cursor: pointer; }
 .dashboard .dashboard-link {
   font-size: 16px;
   font-weight: 700;
+}
+
+.dashboard-card-ornaments {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  display: flex;
+  gap: 10px;
+  z-index: 2;
+}
+
+.dashboard-ornament-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 24px rgba(20, 38, 34, 0.08);
+  color: rgba(16, 56, 50, 0.72);
+}
+
+.dashboard-mini-svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.dashboard-card-mint .dashboard-ornament-badge {
+  color: rgba(10, 122, 104, 0.8);
+}
+
+.dashboard-card-sand .dashboard-ornament-badge {
+  color: rgba(161, 107, 20, 0.82);
+}
+
+.dashboard-card-sky .dashboard-ornament-badge {
+  color: rgba(30, 110, 172, 0.82);
 }
 
 @media (max-width: 1200px) {
@@ -4692,9 +4764,11 @@ a, button, .profile-tab { cursor: pointer; }
 }
 
 .dv-card.dv-card-balanced {
-  height: 100%;
+  height: auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .dv-card.dv-card-balanced .dv-card-head {
@@ -4783,10 +4857,6 @@ a, button, .profile-tab { cursor: pointer; }
 }
 
 @media (min-width: 901px) {
-  .dv-card.dv-card-balanced:first-child {
-    min-height: 860px;
-  }
-
   .dv-card.dv-card-balanced:last-child .dv-calendar-card {
     padding-bottom: 18px;
   }
@@ -4809,4 +4879,97 @@ a, button, .profile-tab { cursor: pointer; }
   .dv-form-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* =========================================== */
+/* 15H. DOCTOR SECTION STACK FIX               */
+/* =========================================== */
+
+.doctor-visit-page {
+  display: grid;
+  gap: 26px;
+}
+
+.doctor-visit-page .dv-shell {
+  margin-top: 0;
+  margin-bottom: 0;
+  position: relative;
+}
+
+.doctor-visit-page .dv-main-grid,
+.doctor-visit-page .dv-summary-card,
+.doctor-visit-page .dv-timeline-section {
+  isolation: isolate;
+}
+
+.doctor-visit-page .dv-main-grid {
+  margin-bottom: 8px;
+}
+
+.doctor-visit-page .dv-summary-card,
+.doctor-visit-page .dv-timeline-section {
+  overflow: hidden;
+  padding-top: 26px;
+}
+
+.doctor-visit-page .dv-summary-card::before,
+.doctor-visit-page .dv-timeline-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(20, 184, 166, 0.12);
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .doctor-visit-page {
+    gap: 20px;
+  }
+}
+
+/* =========================================== */
+/* 15I. MATCH INPUT AND INSIGHT PANEL HEIGHTS  */
+/* =========================================== */
+
+.report-workspace,
+.reflection-grid-fluid {
+  align-items: stretch;
+}
+
+.report-workspace > div,
+.reflection-grid-fluid > section,
+.reflection-grid-fluid > div {
+  height: 100%;
+}
+
+.report-panel,
+.reflection-panel {
+  height: 100%;
+}
+
+.insight-panel.report-panel,
+.reflection-results-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.insight-panel.report-panel .upload-shell-body {
+  flex: 1;
+}
+
+.insight-panel.report-panel .insight-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.reflection-results-panel > .reflection-backend-card,
+.reflection-results-panel > .reflection-entered-card,
+.reflection-results-panel > .reflection-empty {
+  flex: 1;
+}
+
+.reflection-results-panel .reflection-empty {
+  min-height: 0;
 }
