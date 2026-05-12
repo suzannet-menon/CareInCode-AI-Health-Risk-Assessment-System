@@ -1,68 +1,152 @@
-# Code with Care – AI Health Risk Assessment System
+# CareInCode
 
-An AI-powered web-based system designed to assess health risks based on user input and provide early indications for lifestyle-related diseases.
+CareInCode is a health support web app designed to help users understand their health data, simplify reports, and prepare better for doctor visits.
 
----
+The project currently includes:
 
-## 🚀 Overview
+- A `frontend` built with React and Vite
+- A `backend` built with FastAPI
+- Three main user flows:
+  - Health Reflection Tool
+  - Report Simplifier
+  - Doctor Visit Preparation
 
-Many lifestyle diseases such as hypertension, diabetes, and respiratory conditions often go undetected due to irregular health check-ups and limited access to healthcare.
+## Features
 
-This project aims to provide a **digital, accessible, and early-stage risk assessment system** that helps users monitor their health and receive preventive insights.
+- Log optional vitals such as SpO2, blood pressure, heart rate, and temperature
+- Upload medical reports and reserve space for plain-language summaries
+- Track medications and symptom changes over time
+- Generate a structured doctor-visit summary
+- Responsive UI for desktop and mobile
 
----
+## Tech Stack
 
-## 🎯 Objectives
+- Frontend: React, Vite, Framer Motion, React Router
+- Backend: FastAPI
+- Database: MongoDB
+- AI integration target: Gemini API
 
-- Develop a smart digital health assessment system  
-- Collect and analyze key health parameters  
-- Provide early risk indications for lifestyle diseases  
-- Promote preventive healthcare and awareness  
+## Project Structure
 
----
+```text
+CareInCode/
+|-- frontend/
+|   |-- src/
+|   |-- package.json
+|   `-- vite.config.js
+|-- backend/
+|   |-- app/
+|   |-- requirements.txt
+|   `-- Dockerfile
+`-- README.md
+```
 
-## 🧠 Features
+## Run Locally
 
-- Input-based health assessment  
-- AI-assisted risk indication  
-- Early warning system for lifestyle diseases  
-- User-friendly web interface  
+### 1. Clone the repository
 
----
+```bash
+git clone https://github.com/suzannet-menon/CareInCode-AI-Health-Risk-Assessment-System.git
+cd CareInCode-AI-Health-Risk-Assessment-System
+```
 
-## 🛠 Tech Stack
+### 2. Start the frontend
 
-- Frontend: (add yours — React / HTML / CSS)
-- Backend: (if any — Node / Flask etc.)
-- AI/Logic: (rule-based / API / model — be honest)
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
----
+The frontend will usually start on:
 
-## 📊 Expected Outcome
+```text
+http://localhost:5173
+```
 
-- A platform that helps monitor basic health indicators  
-- Early detection of potential health risks  
-- Increased accessibility to preventive healthcare tools  
+### 3. Start the backend
 
----
+Open a second terminal from the project root:
 
-## ⚠️ Note
+```bash
+cd backend
+python -m venv .venv
+```
 
-This is a prototype system built for academic and exploratory purposes and is not intended for medical diagnosis.
+Activate the virtual environment:
 
----
+Windows PowerShell:
 
-## 👥 Team
+```powershell
+.venv\Scripts\Activate.ps1
+```
 
-Built as part of a group project.
+macOS/Linux:
 
----
+```bash
+source .venv/bin/activate
+```
 
-## 📌 Future Improvements
+Install backend dependencies:
 
-- Improve AI model accuracy  
-- Add real-time data tracking  
-- Integrate wearable device data  
-- Enhance UI/UX  
+```bash
+pip install -r requirements.txt
+```
 
----
+Run the API server:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+The backend will usually start on:
+
+```text
+http://localhost:8000
+```
+
+## Environment Variables
+
+The backend reads settings from a `.env` file inside the `backend` folder.
+
+Example:
+
+```env
+GEMINI_API_KEY=
+GEMINI_MODEL=models/gemini-2.5-flash
+MONGO_URI=mongodb://localhost:27017
+DATABASE_NAME=careincode
+JWT_SECRET=careincode_jwt_secret
+ENCRYPTION_KEY=careincode_secure_key_32
+```
+
+If you do not connect Gemini or MongoDB yet, parts of the app can still be developed visually from the frontend.
+
+## Available Scripts
+
+### Frontend
+
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run lint
+```
+
+### Backend
+
+```bash
+uvicorn app.main:app --reload
+```
+
+## Notes
+
+- This project is a prototype and is not a medical diagnosis tool.
+- Medical image interpretation is out of scope. The report simplifier is intended for report text and extracted report values.
+
+## Future Improvements
+
+- Connect live AI-powered analysis to all three flows
+- Export structured doctor summaries as polished PDF documents
+- Improve report extraction and summary formatting
+- Add authentication and persistent user history
